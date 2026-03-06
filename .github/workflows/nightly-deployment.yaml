@@ -79,6 +79,38 @@ jobs:
           chmod +x infra/scripts/smoke-test.sh
           infra/scripts/smoke-test.sh
 
+  push-to-ecr:
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+    steps:
+      - name: Download Image Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+      - name: Load Images
+        run: |
+          docker load -i frontend.tar.gz
+          docker load -i backend.tar.gz
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Tag and Push Images
+        run: |
+          REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          docker tag ref-type-frontend:latest $REGISTRY/ref-type-frontend:latest
+          docker tag ref-type-backend:latest $REGISTRY/ref-type-backend:latest
+          docker push $REGISTRY/ref-type-frontend:latest
+          docker push $REGISTRY/ref-type-backend:latest
+
   cleanup:
     needs: [provision-dynamic-ec2, smoke-test]
     if: always()
