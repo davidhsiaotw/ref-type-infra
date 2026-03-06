@@ -118,6 +118,34 @@ jobs:
           docker push $REGISTRY/ref-type-frontend:latest
           docker push $REGISTRY/ref-type-backend:latest
 
+  deploy-to-qa:
+    needs: push-to-ecr
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Repo (for Docker compose file)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ref-type
+          sparse-checkout: |
+            compose.yaml
+            init.sql
+          path: source
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/deploy-qa.sh
+          path: infra
+      - name: Deploy to QA EC2
+        env:
+          QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REGISTRY: ${{ needs.push-to-ecr.outputs.registry }}
+        run: |
+          cp source/compose.yaml .
+          cp source/init.sql .
+          chmod +x ./infra/scripts/deploy-qa.sh
+          ./infra/scripts/deploy-qa.sh
+
   cleanup:
     needs: [provision-dynamic-ec2, smoke-test]
     if: always()
