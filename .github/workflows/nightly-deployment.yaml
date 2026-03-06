@@ -49,7 +49,7 @@ jobs:
           AMI_ID: ${{ secrets.AMI_ID }}
           INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
           KEY_NAME: ${{ secrets.KEY_NAME }}
-          SECURITY_GROUP_ID: ${{ secrets.SECURITY_GROUP_ID }}
+          SMOKE_SECURITY_GROUP_ID: ${{ secrets.SMOKE_SECURITY_GROUP_ID }}
           SUBNET_ID: ${{ secrets.SUBNET_ID }}
         run: |
           chmod +x scripts/provision-ec2.sh

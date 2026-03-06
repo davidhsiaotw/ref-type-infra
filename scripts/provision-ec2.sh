@@ -8,7 +8,7 @@ INSTANCE_ID=$(aws ec2 run-instances \
   --count 1 \
   --instance-type "$INSTANCE_TYPE" \
   --key-name "$KEY_NAME" \
-  --security-group-ids "$SECURITY_GROUP_ID" \
+  --security-group-ids "$SMOKE_SECURITY_GROUP_ID" \
   --subnet-id "$SUBNET_ID" \
   --query 'Instances[0].InstanceId' \
   --output text)
