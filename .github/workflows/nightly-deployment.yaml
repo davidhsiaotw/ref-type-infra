@@ -36,9 +36,10 @@ jobs:
     steps:
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
-        sparse-checkout: |
-          compose.yaml
-          init.sql
+        with:
+          sparse-checkout: |
+            compose.yaml
+            init.sql
       - name: Provision EC2
         id: provision
         env:
