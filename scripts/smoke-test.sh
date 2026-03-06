@@ -46,8 +46,6 @@ ENV_EOF
   # Start the app
   echo ">>> BUILDING AND STARTING CONTAINERS..."
   sudo docker compose up -d --build
-  echo ">>> INITIAL CONTAINER LOGS:"
-  sudo docker compose logs
 
   echo ">>> Waiting for app to be ready (checking /leaderboard)..."
   MAX_RETRIES=20
