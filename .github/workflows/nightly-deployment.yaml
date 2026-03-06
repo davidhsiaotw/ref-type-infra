@@ -122,7 +122,7 @@ jobs:
     needs: push-to-ecr
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Source Repo (for Docker compose file)
+      - name: Checkout Source Repo
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/ref-type
@@ -135,6 +135,27 @@ jobs:
         with:
           sparse-checkout: scripts/deploy-qa.sh
           path: infra
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get Runner IP
+        id: ip
+        run: echo "ipv4=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
+
+      - name: Whitelist Runner IP
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ secrets.SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
       - name: Deploy to QA EC2
         env:
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
@@ -145,6 +166,15 @@ jobs:
           cp source/init.sql .
           chmod +x ./infra/scripts/deploy-qa.sh
           ./infra/scripts/deploy-qa.sh
+
+      - name: Revoke Runner IP
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
 
   cleanup:
     needs: [provision-dynamic-ec2, smoke-test]
