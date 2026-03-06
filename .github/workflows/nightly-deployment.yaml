@@ -1,0 +1,53 @@
+name: Nightly Deployment
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run at midnight every day
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  provision-dynamic-ec2:
+    runs-on: ubuntu-latest
+    outputs:
+      ec2_ip: ${{ steps.provision.outputs.ec2_ip }}
+      instance_id: ${{ steps.provision.outputs.instance_id }}
+    steps:
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v4
+      - name: Provision EC2
+        id: provision
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AMI_ID: ${{ secrets.AMI_ID }}
+          INSTANCE_TYPE: ${{ secrets.INSTANCE_TYPE }}
+          KEY_NAME: ${{ secrets.KEY_NAME }}
+          SECURITY_GROUP_ID: ${{ secrets.SECURITY_GROUP_ID }}
+          SUBNET_ID: ${{ secrets.SUBNET_ID }}
+        run: |
+          chmod +x scripts/provision-ec2.sh
+          ./scripts/provision-ec2.sh
+
+  cleanup:
+    needs: [provision-dynamic-ec2]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v4
+      - name: Cleanup Dynamic EC2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          INSTANCE_ID: ${{ needs.provision-dynamic-ec2.outputs.instance_id }}
+        run: |
+          if [ -n "$INSTANCE_ID" ]; then
+            chmod +x scripts/cleanup-ec2.sh
+            ./scripts/cleanup-ec2.sh
+          else
+            echo "No Instance ID found, skipping cleanup."
+          fi
