@@ -21,8 +21,8 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" << EOF
   cd ~/app
   
   # Set environment variables for ECR images
-  export BACKEND_IMAGE="${AWS_REGISTRY}/ref-type-backend:latest"
-  export FRONTEND_IMAGE="${AWS_REGISTRY}/ref-type-frontend:latest"
+  export BACKEND_IMAGE="${REGISTRY}/ref-type-backend:latest"
+  export FRONTEND_IMAGE="${REGISTRY}/ref-type-frontend:latest"
   
   echo "Pulling latest images from ECR..."
   sudo docker compose pull
