@@ -1,14 +1,12 @@
 #!/bin/bash
 set -e
 
-# EC2_IP and SSH_PRIVATE_KEY are passed via env
 SSH_KEY_FILE="temp_key.pem"
 echo "$SSH_PRIVATE_KEY" > "$SSH_KEY_FILE"
 chmod 600 "$SSH_KEY_FILE"
 
-echo "Transferring source code and docker-install script to dynamic EC2 ($EC2_IP)..."
-tar -czf source.tar.gz -C source .
-scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no source.tar.gz infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
+echo "Transferring Docker images and install script to dynamic EC2 ($EC2_IP)..."
+scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no frontend.tar.gz backend.tar.gz compose.yaml infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
 
 echo "Setting up and running app on dynamic EC2..."
 ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
@@ -26,8 +24,10 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
   sudo usermod -aG docker ubuntu
   sudo systemctl start docker
 
-  mkdir -p app && tar -xzf source.tar.gz -C app && cd app
-  ls -la
+  # Load Docker images
+  echo ">>> Loading Docker images..."
+  sudo docker load -i frontend.tar.gz
+  sudo docker load -i backend.tar.gz
 
   # Create dummy .env for smoke test
   cat > .env << ENV_EOF
@@ -44,8 +44,8 @@ ENV_EOF
 
   trap 'sudo docker compose logs; exit 1' ERR
   # Start the app
-  echo ">>> BUILDING AND STARTING CONTAINERS..."
-  sudo docker compose up -d --build
+  echo ">>> STARTING CONTAINERS..."
+  sudo docker compose up -d
 
   echo ">>> Waiting for app to be ready (checking /leaderboard)..."
   MAX_RETRIES=20
