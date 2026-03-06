@@ -6,6 +6,28 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ref-type
+      - name: Build and Compressed Docker Images
+        run: |
+          docker build -t ref-type-frontend:latest ./frontend
+          docker build -t ref-type-backend:latest ./backend
+          docker save ref-type-frontend:latest | gzip > frontend.tar.gz
+          docker save ref-type-backend:latest | gzip > backend.tar.gz
+      - name: Upload Image Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-images
+          path: |
+            frontend.tar.gz
+            backend.tar.gz
+          retention-days: 1
+
   provision-dynamic-ec2:
     runs-on: ubuntu-latest
     outputs:
