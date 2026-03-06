@@ -7,8 +7,8 @@ echo "$SSH_PRIVATE_KEY" > "$SSH_KEY_FILE"
 chmod 600 "$SSH_KEY_FILE"
 
 echo "Transferring source code and docker-install script to dynamic EC2 ($EC2_IP)..."
-tar -czf source.tar.gz -C source .
-scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no source.tar.gz infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
+tar -czf source.tar.gz -C ref-type .
+scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no source.tar.gz ref-type-infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
 
 echo "Setting up and running app on dynamic EC2..."
 ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
@@ -27,6 +27,7 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
   sudo systemctl start docker
 
   mkdir -p app && tar -xzf source.tar.gz -C app && cd app
+  ls -la
 
   # Create dummy .env for smoke test
   cat > .env << ENV_EOF
