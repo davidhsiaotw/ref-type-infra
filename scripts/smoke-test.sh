@@ -8,15 +8,19 @@ chmod 600 "$SSH_KEY_FILE"
 
 echo "Transferring source code and docker-install script to dynamic EC2 ($EC2_IP)..."
 tar -czf source.tar.gz -C source .
-scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no source.tar.gz infra/docker-install.sh ubuntu@"$EC2_IP":~/
+scp -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no source.tar.gz infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
 
 echo "Setting up and running app on dynamic EC2..."
 ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
   set -e
   # Install Docker if missing
   if ! command -v docker &> /dev/null; then
+    echo ">>> STARTING DOCKER INSTALLATION..."
     chmod +x docker-install.sh
     ./docker-install.sh
+    echo ">>> DOCKER INSTALLATION FINISHED."
+  else
+    echo ">>> Docker is already installed."
   fi
 
   sudo usermod -aG docker ubuntu
@@ -37,10 +41,14 @@ DB_DATABASE=testdb
 JWT_SECRET_KEY=secret
 ENV_EOF
 
+  trap 'sudo docker compose logs; exit 1' ERR
   # Start the app
+  echo ">>> BUILDING AND STARTING CONTAINERS..."
   sudo docker compose up -d --build
+  echo ">>> INITIAL CONTAINER LOGS:"
+  sudo docker compose logs
 
-  echo "Waiting for app to be ready (checking /leaderboard)..."
+  echo ">>> Waiting for app to be ready (checking /leaderboard)..."
   MAX_RETRIES=20
   COUNT=0
   # check port 8081 (backend) for the /leaderboard endpoint
