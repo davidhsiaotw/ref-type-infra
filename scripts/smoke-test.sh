@@ -6,7 +6,13 @@ echo "$SSH_PRIVATE_KEY" > "$SSH_KEY_FILE"
 chmod 600 "$SSH_KEY_FILE"
 
 echo "Transferring Docker images and install script to dynamic EC2 ($EC2_IP)..."
-rsync -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no frontend.tar.gz backend.tar.gz compose.yaml infra/scripts/docker-install.sh ubuntu@"$EC2_IP":~/
+rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
+  frontend.tar.gz \
+  backend.tar.gz \
+  compose.yaml \
+  init.sql \
+  infra/scripts/docker-install.sh \
+  ubuntu@"$EC2_IP":~/
 
 echo "Setting up and running app on dynamic EC2..."
 ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'

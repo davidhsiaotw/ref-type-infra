@@ -75,6 +75,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           cp source/compose.yaml .
+          cp source/init.sql .
           chmod +x infra/scripts/smoke-test.sh
           infra/scripts/smoke-test.sh
 
