@@ -20,7 +20,7 @@ jobs:
           docker save ref-type-frontend:latest | gzip > frontend.tar.gz
           docker save ref-type-backend:latest | gzip > backend.tar.gz
       - name: Upload Image Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: docker-images
           path: |
