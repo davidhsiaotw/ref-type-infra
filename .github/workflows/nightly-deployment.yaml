@@ -48,8 +48,8 @@ jobs:
           EC2_IP: ${{ needs.provision-dynamic-ec2.outputs.ec2_ip }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          chmod +x ./scripts/smoke-test.sh
-          ./scripts/smoke-test.sh
+          chmod +x infra/scripts/smoke-test.sh
+          infra/scripts/smoke-test.sh
 
   cleanup:
     needs: [provision-dynamic-ec2, smoke-test]
