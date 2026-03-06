@@ -36,6 +36,9 @@ jobs:
     steps:
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
+        sparse-checkout: |
+          compose.yaml
+          init.sql
       - name: Provision EC2
         id: provision
         env:
@@ -60,10 +63,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/ref-type
+          sparse-checkout: |
+            compose.yaml
+            init.sql
           path: source
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
         with:
+          sparse-checkout: scripts/smoke-test.sh
           path: infra
       - name: Download Image Artifacts
         uses: actions/download-artifact@v4
@@ -76,8 +83,8 @@ jobs:
         run: |
           cp source/compose.yaml .
           cp source/init.sql .
-          chmod +x infra/scripts/smoke-test.sh
-          infra/scripts/smoke-test.sh
+          chmod +x ./infra/scripts/smoke-test.sh
+          ./infra/scripts/smoke-test.sh
 
   push-to-ecr:
     needs: smoke-test
@@ -118,6 +125,8 @@ jobs:
     steps:
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
+        with:
+            sparse-checkout: scripts/cleanup-ec2.sh
       - name: Cleanup Dynamic EC2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
