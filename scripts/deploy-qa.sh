@@ -24,6 +24,10 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" << EOF
   export BACKEND_IMAGE="${REGISTRY}/ref-type-backend:latest"
   export FRONTEND_IMAGE="${REGISTRY}/ref-type-frontend:latest"
   
+  # Authenticate with ECR
+  echo "Authenticating with Amazon ECR..."
+  aws ecr get-login-password --region "${REGION}" | sudo docker login --username AWS --password-stdin "${REGISTRY}"
+  
   echo "Pulling latest images from ECR..."
   sudo docker compose pull
   
