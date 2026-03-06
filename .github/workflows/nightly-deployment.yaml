@@ -30,8 +30,29 @@ jobs:
           chmod +x scripts/provision-ec2.sh
           ./scripts/provision-ec2.sh
 
+  smoke-test:
+    needs: provision-dynamic-ec2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/ref-type 
+          path: source
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v4
+        with:
+          path: infra
+      - name: Run Smoke Test
+        env:
+          EC2_IP: ${{ needs.provision-dynamic-ec2.outputs.ec2_ip }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          chmod +x infra/scripts/smoke-test.sh
+          ./infra/scripts/smoke-test.sh
+
   cleanup:
-    needs: [provision-dynamic-ec2]
+    needs: [provision-dynamic-ec2, smoke-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
