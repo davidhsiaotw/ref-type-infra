@@ -158,10 +158,10 @@ jobs:
 
       - name: Deploy to QA EC2
         env:
+          REGISTRY: ${{ needs.push-to-ecr.outputs.registry }}
           REGION: ${{ secrets.AWS_REGION }}
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REGISTRY: ${{ needs.push-to-ecr.outputs.registry }}
         run: |
           cp source/compose.yaml .
           cp source/init.sql .
