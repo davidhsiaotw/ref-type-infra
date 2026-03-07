@@ -16,23 +16,28 @@ rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
 
 # Deploy using Docker Compose
 echo "Executing deployment commands on QA EC2..."
-ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" << EOF
+ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
+  REGISTRY="$REGISTRY" REGION="$REGION" 'bash -s'<< 'EOF'
   set -e
+
+  : "${REGISTRY:?Registry URL is missing}"
+  : "${REGION:?AWS Region is missing}"
+
   cd ~/app
-  
-  # Set environment variables for ECR images
-  export BACKEND_IMAGE="${REGISTRY}/ref-type-backend:latest"
-  export FRONTEND_IMAGE="${REGISTRY}/ref-type-frontend:latest"
   
   # Authenticate with ECR
   echo "Authenticating with Amazon ECR..."
-  aws ecr get-login-password --region "${REGION}" | sudo docker login --username AWS --password-stdin "${REGISTRY}"
+  aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $REGISTRY
+
+  # Set environment variables for ECR images
+  export BACKEND_IMAGE="$REGISTRY/ref-type-backend:latest"
+  export FRONTEND_IMAGE="$REGISTRY/ref-type-frontend:latest"
   
   echo "Pulling latest images from ECR..."
-  sudo docker compose pull
+  sudo -E docker compose pull
   
   echo "Restarting containers..."
-  sudo docker compose up -d
+  sudo -E docker compose up -d
   
   echo "Pruning old images..."
   sudo docker image prune -f
