@@ -89,8 +89,6 @@ jobs:
   push-to-ecr:
     needs: smoke-test
     runs-on: ubuntu-latest
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
     steps:
       - name: Download Image Artifacts
         uses: actions/download-artifact@v4
@@ -156,9 +154,12 @@ jobs:
             --port 22 \
             --cidr ${{ steps.ip.outputs.ipv4 }}/32
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
       - name: Deploy to QA EC2
         env:
-          REGISTRY: ${{ needs.push-to-ecr.outputs.registry }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REGION: ${{ secrets.AWS_REGION }}
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
