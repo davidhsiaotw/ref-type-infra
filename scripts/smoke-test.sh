@@ -51,7 +51,7 @@ ENV_EOF
   trap 'sudo docker compose -f compose.local.yaml logs; exit 1' ERR
   # Start the app using local database
   echo ">>> STARTING CONTAINERS..."
-  sudo docker compose -f compose.local.yaml up -d
+  sudo docker compose -f compose.local.yaml up -d --no-build
 
   echo ">>> Waiting for app to be ready (checking /leaderboard)..."
   MAX_RETRIES=20

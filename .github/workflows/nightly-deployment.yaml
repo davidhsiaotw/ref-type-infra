@@ -71,7 +71,9 @@ jobs:
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
         with:
-          sparse-checkout: scripts/smoke-test.sh
+          sparse-checkout: |
+            scripts/smoke-test.sh
+            scripts/docker-install.sh
           path: infra
       - name: Download Image Artifacts
         uses: actions/download-artifact@v4
