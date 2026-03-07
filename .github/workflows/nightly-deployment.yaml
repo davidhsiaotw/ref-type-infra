@@ -65,6 +65,7 @@ jobs:
           repository: ${{ github.repository_owner }}/ref-type
           sparse-checkout: |
             compose.yaml
+            compose.local.yaml
             init.sql
           path: source
       - name: Checkout Infra Repo
@@ -82,6 +83,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           cp source/compose.yaml .
+          cp source/compose.local.yaml .
           cp source/init.sql .
           chmod +x ./infra/scripts/smoke-test.sh
           ./infra/scripts/smoke-test.sh

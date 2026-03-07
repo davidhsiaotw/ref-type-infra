@@ -9,7 +9,7 @@ echo "Transferring Docker images and install script to dynamic EC2 ($EC2_IP)..."
 rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
   frontend.tar.gz \
   backend.tar.gz \
-  compose.yaml \
+  compose.local.yaml \
   init.sql \
   infra/scripts/docker-install.sh \
   ubuntu@"$EC2_IP":~/
@@ -35,7 +35,7 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" << 'EOF'
   sudo docker load -i frontend.tar.gz
   sudo docker load -i backend.tar.gz
 
-  # Create dummy .env for smoke test
+  # Create dummy .env for smoke test (verifies images, not RDS)
   cat > .env << ENV_EOF
 MYSQL_ROOT_PASSWORD=password
 MYSQL_DATABASE=testdb
@@ -48,10 +48,10 @@ DB_DATABASE=testdb
 JWT_SECRET_KEY=secret
 ENV_EOF
 
-  trap 'sudo docker compose logs; exit 1' ERR
-  # Start the app
+  trap 'sudo docker compose -f compose.local.yaml logs; exit 1' ERR
+  # Start the app using local database
   echo ">>> STARTING CONTAINERS..."
-  sudo docker compose up -d
+  sudo docker compose -f compose.local.yaml up -d
 
   echo ">>> Waiting for app to be ready (checking /leaderboard)..."
   MAX_RETRIES=20
@@ -65,7 +65,7 @@ ENV_EOF
 
   if [ $COUNT -eq $MAX_RETRIES ]; then
     echo "Smoke test failed: Backend did not respond to /leaderboard in time."
-    sudo docker compose logs
+    sudo docker compose -f compose.local.yaml logs
     exit 1
   fi
 
