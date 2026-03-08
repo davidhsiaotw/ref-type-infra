@@ -25,6 +25,13 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
 
   cd ~/app
 
+  # Check if .env file exists
+  if [ ! -f .env ]; then
+    echo "ERROR: .env file is missing in ~/app directory on QA EC2."
+    echo "This file is required for database credentials and other secrets."
+    exit 1
+  fi
+
   # Authenticate Docker to ECR
   echo "Logging in to ECR..."
   echo "$ECR_TOKEN" | sudo docker login --username AWS --password-stdin $REGISTRY
