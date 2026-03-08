@@ -3,10 +3,16 @@ name: Nightly Deployment
 on:
   schedule:
     - cron: '0 8 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+        deploy_directly:
+          description: 'jump to deployment?'
+          type: boolean
+          default: false
 
 jobs:
   build-images:
+    if: ${{ !github.event.inputs.deploy_directly }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Repo
@@ -29,6 +35,7 @@ jobs:
           retention-days: 1
 
   provision-dynamic-ec2:
+    if: ${{ !github.event.inputs.deploy_directly }}
     runs-on: ubuntu-latest
     outputs:
       ec2_ip: ${{ steps.provision.outputs.ec2_ip }}
@@ -121,6 +128,7 @@ jobs:
           docker push $REGISTRY/ref-type/backend:latest
 
   deploy-to-qa:
+    if: ${{ success() || (needs.push-to-ecr.result == 'skipped' && github.event.inputs.deploy_directly) }}
     needs: push-to-ecr
     runs-on: ubuntu-latest
     steps:
