@@ -43,6 +43,9 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
   echo "Pulling latest images from ECR..."
   sudo BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose pull
 
+  set -a
+  source .env
+  set +a
   echo "Applying database schema to RDS..."
   mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_DATABASE" < init.sql
 
