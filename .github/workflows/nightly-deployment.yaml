@@ -168,6 +168,7 @@ jobs:
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          ECR_TOKEN=$(aws ecr get-login-password --region $REGION)
           cp source/compose.yaml .
           cp source/init.sql .
           chmod +x ./infra/scripts/deploy-qa.sh
