@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-images:
-    if: ${{ !github.event.inputs.deploy_directly }}
+    if: ${{ github.event.inputs.deploy_directly != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Repo
@@ -35,7 +35,7 @@ jobs:
           retention-days: 1
 
   provision-dynamic-ec2:
-    if: ${{ !github.event.inputs.deploy_directly }}
+    if: ${{ github.event.inputs.deploy_directly != 'true' }}
     runs-on: ubuntu-latest
     outputs:
       ec2_ip: ${{ steps.provision.outputs.ec2_ip }}
