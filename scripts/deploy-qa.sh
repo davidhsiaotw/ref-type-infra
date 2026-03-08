@@ -41,10 +41,10 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
   export FRONTEND_IMAGE="$REGISTRY/ref-type/frontend:latest"
 
   echo "Pulling latest images from ECR..."
-  sudo -E docker compose pull
+  sudo BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose pull
 
   echo "Restarting containers..."
-  sudo -E docker compose up -d
+  sudo BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose up -d
 
   echo "Pruning old images..."
   sudo docker image prune -f
