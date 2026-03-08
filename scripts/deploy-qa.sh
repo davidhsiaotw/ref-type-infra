@@ -17,7 +17,7 @@ rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
 # Deploy using Docker Compose
 echo "Executing deployment commands on QA EC2..."
 ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
-  REGISTRY="$REGISTRY" REGION="$REGION" ECR_TOKEN="$ECR_TOKEN" 'bash -s'<< 'EOF'
+  REGISTRY="$REGISTRY" REGION="$REGION" 'bash -s'<< 'EOF'
   set -e
 
   : "${REGISTRY:?Registry URL is missing}"
@@ -32,9 +32,9 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
     exit 1
   fi
 
-  # Authenticate Docker to ECR
-  echo "Logging in to ECR..."
-  echo "$ECR_TOKEN" | sudo docker login --username AWS --password-stdin $REGISTRY
+  # Authenticate with ECR
+  echo "Authenticating with Amazon ECR..."
+  aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $REGISTRY
 
   # Set environment variables for ECR images
   export BACKEND_IMAGE="$REGISTRY/ref-type/backend:latest"

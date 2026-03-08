@@ -164,7 +164,6 @@ jobs:
       - name: Deploy to QA EC2
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_TOKEN: ${{ steps.login-ecr.outputs.docker_password_229379726117_dkr_ecr_us_east_1_amazonaws_com }}
           REGION: ${{ secrets.AWS_REGION }}
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
