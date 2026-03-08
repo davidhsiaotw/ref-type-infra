@@ -20,6 +20,12 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
   REGISTRY="$REGISTRY" REGION="$REGION" 'bash -s'<< 'EOF'
   set -e
 
+  if [ ! -f /certs/global-bundle.pem ]; then
+  echo "Downloading AWS RDS SSL certificate bundle..."
+  sudo mkdir -p /certs
+  sudo curl -sS https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem -o /certs/global-bundle.pem
+  fi
+
   : "${REGISTRY:?Registry URL is missing}"
   : "${REGION:?AWS Region is missing}"
 
@@ -47,7 +53,7 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
   source .env
   set +a
   echo "Applying database schema to RDS..."
-  mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_DATABASE" < init.sql
+  mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" --ssl-verify-server-cert  --ssl-ca=../certs/global-bundle.pem "$DB_DATABASE" < init.sql
 
   echo "Restarting containers..."
   sudo BACKEND_IMAGE="$BACKEND_IMAGE" FRONTEND_IMAGE="$FRONTEND_IMAGE" docker compose up -d
