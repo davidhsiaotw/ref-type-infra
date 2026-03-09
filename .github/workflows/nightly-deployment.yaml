@@ -140,13 +140,15 @@ jobs:
         with:
           repository: ${{ github.repository_owner }}/ref-type
           sparse-checkout: |
-            compose.yaml
             init.sql
           path: source
       - name: Checkout Infra Repo
         uses: actions/checkout@v4
         with:
-          sparse-checkout: scripts/deploy-qa.sh
+          sparse-checkout: |
+            compose.yaml
+            nginx.conf
+            scripts/deploy-qa.sh
           path: infra
 
       - name: Configure AWS credentials
@@ -179,7 +181,8 @@ jobs:
           QA_EC2_IP: ${{ secrets.QA_EC2_IP }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          cp source/compose.yaml .
+          cp infra/compose.yaml .
+          cp infra/nginx.conf .
           cp source/init.sql .
           chmod +x ./infra/scripts/deploy-qa.sh
           ./infra/scripts/deploy-qa.sh

@@ -11,6 +11,7 @@ chmod 600 "$SSH_KEY_FILE"
 echo "Transferring files to QA EC2..."
 rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
   compose.yaml \
+  nginx.conf \
   init.sql \
   ubuntu@"$QA_EC2_IP":~/app/
 
