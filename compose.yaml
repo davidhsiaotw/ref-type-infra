@@ -1,0 +1,29 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE:-ref-type-backend:latest}
+    container_name: backend-api
+    env_file:
+      - .env
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_USER: "${DB_USER}"
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DB_DATABASE: "${DB_DATABASE}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
+      PORT: 8081
+      FRONTEND_ORIGIN: "http://wyxiao.games,https://wyxiao.games"
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ref-type-frontend:latest}
+    container_name: frontend-ui
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
