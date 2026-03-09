@@ -32,6 +32,15 @@ ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$QA_EC2_IP" \
     exit 1
   fi
 
+  if [ ! -f compose.yaml ]; then
+    echo "ERROR: compose.yaml file is missing in ~/app directory on QA EC2."
+    exit 1
+  fi
+  if [ ! -f nginx.conf ]; then
+    echo "ERROR: nginx.conf file is missing in ~/app directory on QA EC2."
+    exit 1
+  fi
+
   # Authenticate with ECR
   echo "Authenticating with Amazon ECR..."
   aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $REGISTRY
