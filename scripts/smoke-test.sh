@@ -14,9 +14,10 @@ rsync -avz -e "ssh -i $SSH_KEY_FILE -o StrictHostKeyChecking=no" \
   infra/scripts/docker-install.sh \
   ubuntu@"$EC2_IP":~/
 
+EXPORT_DB_VARS=$(printf "DB_HOST=%q DB_USER=%q DB_PASSWORD=%q DB_PORT=%q DB_DATABASE=%q" \
+  "$DB_HOST" "$DB_USER" "$DB_PASSWORD" "$DB_PORT" "$DB_DATABASE")
 echo "Setting up and running app on dynamic EC2..."
-ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" \
-  DB_HOST="$DB_HOST" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" DB_PORT="$DB_PORT" DB_DATABASE="$DB_DATABASE" << 'EOF'
+ssh -i "$SSH_KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$EC2_IP" "$EXPORT_DB_VARS" << 'EOF'
   set -e
   # Install Docker if missing
   if ! command -v docker &> /dev/null; then
