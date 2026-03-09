@@ -71,7 +71,6 @@ jobs:
         with:
           repository: ${{ github.repository_owner }}/ref-type
           sparse-checkout: |
-            compose.yaml
             compose.local.yaml
             init.sql
           path: source
@@ -90,8 +89,12 @@ jobs:
         env:
           EC2_IP: ${{ needs.provision-dynamic-ec2.outputs.ec2_ip }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
         run: |
-          cp source/compose.yaml .
           cp source/compose.local.yaml .
           cp source/init.sql .
           chmod +x ./infra/scripts/smoke-test.sh
