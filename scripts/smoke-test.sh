@@ -46,9 +46,6 @@ DB_DATABASE="$DB_DATABASE"
 JWT_SECRET_KEY=secret
 ENV_EOF
 
-  echo "Applying database schema to RDS..."
-  mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" "$DB_DATABASE" < init.sql
-
   trap 'sudo docker compose -f compose.local.yaml logs; exit 1' ERR
   # Start the app using local database
   echo ">>> STARTING CONTAINERS..."
